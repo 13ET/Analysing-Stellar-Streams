@@ -1,0 +1,53 @@
+clear all;
+%close all;
+
+%%%%%   this file is used to plot the central particle's orbit and the
+%%%%%   individual stream stars, useful for plotting the best fit, just
+%%%%%   change mass in constants0.m and run it (don't forget to change
+%%%%%   back to the "true" potential used)
+
+%%%%%   time
+dt=0.01;            %timestep [dt*0.9778 Myr]
+t=600;
+t_span=0:dt:t;    %time [0.9778 Myr]   
+t_span2=0:dt:t/2;    %time [0.9778 Myr]  
+
+load('observed_stream');   %loads collection of all start values
+
+%%%%   ode45 integrator for central particle
+U=zeros(length(t_span), 6);
+[~,u1]=ode45(@dw, t_span2, [Wend(1,1), Wend(1,2), Wend(1,3), Wend(1,4), Wend(1,5), Wend(1,6)]);           %ode45 integrates for each t in t_span, using start values Wend
+[~,u2]=ode45(@dw, t_span2, [Wend(1,1), -Wend(1,2), Wend(1,3), -Wend(1,4), Wend(1,5), -Wend(1,6)]); 
+U(1:length(t_span2), :)=flip(u1(:, :));     %W(particle number(n), time, x/vx/y/vy/z/vz) = w(time, x/vx/y/vy/z/vz)
+U(length(t_span2):(length(t_span)), :)=u2(:, :);
+
+%%%%   plots the integrated orbit 2D/3D
+figure();
+plot(U(:,1)/1000, U(:, 5)/1000, 'color', 'blue');   %  2D   
+% plot3(U(:,1)/1000, U(:, 3)/1000,U(:, 5)/1000); %  3D
+hold on;
+
+%%%%    labels
+ylim([-40 40]); %limit of x/y coordinates shown [kpc]
+xlim([-40 40]);
+set(gca, 'FontSize', 16);
+ylabel('z-value [kpc]', 'FontSize', 18);
+xlabel('x-value [kpc]', 'FontSize', 18);
+title('$45$','Interpreter','latex', 'FontSize', 20);
+
+
+%%%%   plots saved stream (i.e. observed stream)
+%%%     2D
+plot(Wend(2:50, 1)/1000, Wend(2:50,5)/1000, '*');
+hold on;
+plot(Wend(1,1)/1000, Wend(1,5)/1000, '+', 'markersize', 9, 'linewidth', 1.5, 'color', 'black');
+hold on;
+plot(0, 0, 'o');
+
+%%%     3D
+% plot3(Wend(2:50, 1)/1000, Wend(2:50,3)/1000, Wend(2:50,5)/1000, '*');
+% hold on;
+% plot3(Wend(1,1)/1000, Wend(1,3)/1000, Wend(1,5)/1000, '+');
+% hold on;
+% plot3(0, 0, 0, 'o');
+% zlabel('z-value [kpc]', 'FontSize', 18);
